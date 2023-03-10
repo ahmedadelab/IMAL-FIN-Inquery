@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33213.308
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IMAL-FIN-Inquery", "IMAL-FIN-Inquery.csproj", "{1AE76D84-78DF-4E03-9A0A-E7E7EA6DE4BD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1AE76D84-78DF-4E03-9A0A-E7E7EA6DE4BD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1AE76D84-78DF-4E03-9A0A-E7E7EA6DE4BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1AE76D84-78DF-4E03-9A0A-E7E7EA6DE4BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1AE76D84-78DF-4E03-9A0A-E7E7EA6DE4BD}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {75256FD0-8A90-441E-A536-D728257C4E4D}
+	EndGlobalSection
+EndGlobal
