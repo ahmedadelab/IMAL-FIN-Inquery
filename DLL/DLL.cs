@@ -110,38 +110,41 @@ namespace IMAL_FIN_Inquery
 
         public string returnMiniStatment(string AdditionalRef,string username,string password,string CompanyCode,string serviceID,string serviceDomain,string operationName,string businessDomain,string businessArea,string LastN,string requesterTimeStamp,string lang,string channelname,string remoteIP)
         {
-            string SstatusCode = "";
-            string SstatusDesc = "";
-            var SminiStatementList = "";
-            lang = lang.ToUpper();
             List<Datum> datum = new List<Datum>();
-            List<log> logrequest = new List<log>();
-            string status = CheckChannel(channelname, username, remoteIP, "MiniStatment");
-            string RequestID = "MW-MINI-" + AdditionalRef + "-" + DateTime.Now.ToString("ddMMyyyyHHmmssff");
-
-            logrequest.Add(new log
+            try
             {
+                string SstatusCode = "";
+                string SstatusDesc = "";
+                var SminiStatementList = "";
+                lang = lang.ToUpper();
+       
+                List<log> logrequest = new List<log>();
+                string status = CheckChannel(channelname, username, remoteIP, "MiniStatment");
+                string RequestID = "MW-MINI-" + AdditionalRef + "-" + DateTime.Now.ToString("ddMMyyyyHHmmssff");
 
-                additionalRef = AdditionalRef,
-                username = username,
-                password = "*******",
-                lastN = LastN,
-                lang = lang,
-                ChannelName = channelname
-            });
-            string ClientRequest = JsonConvert.SerializeObject(logrequest);
-            //  string  ClientRequest = JsonConvert.SerializeObject("additionalRef" + AdditionalRef + "," + " username" + username +","+ "password"+"*******"+"," + "lastN" + lastN + "," + "lang:" + lang + "," + "ChannelName" + channelname);
-            DalCode.InsertLog("MiniStatment", Convert.ToDateTime(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")), ClientRequest, "Pending", channelname, RequestID);
-            if (status =="Enabled")
-            {
-                string GL = AdditionalRef.Substring(4, 6);
-
-                string GLstatus = CheckStatus("MiniStatment", GL);
-                if (GLstatus == "Enabled")
+                logrequest.Add(new log
                 {
-                    HttpWebRequest request = CreateWebRequestMiniStatment();
-                    XmlDocument soapEnvelopeXml = new XmlDocument();
-                    soapEnvelopeXml.LoadXml(@"<soapenv:Envelope xmlns:soapenv=""http://schemas.xmlsoap.org/soap/envelope/"" xmlns:stat=""statementOfAccountWs"">
+
+                    additionalRef = AdditionalRef,
+                    username = username,
+                    password = "*******",
+                    lastN = LastN,
+                    lang = lang,
+                    ChannelName = channelname
+                });
+                string ClientRequest = JsonConvert.SerializeObject(logrequest);
+                //  string  ClientRequest = JsonConvert.SerializeObject("additionalRef" + AdditionalRef + "," + " username" + username +","+ "password"+"*******"+"," + "lastN" + lastN + "," + "lang:" + lang + "," + "ChannelName" + channelname);
+                DalCode.InsertLog("MiniStatment", Convert.ToDateTime(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")), ClientRequest, "Pending", channelname, RequestID);
+                if (status == "Enabled")
+                {
+                    string GL = AdditionalRef.Substring(4, 6);
+
+                    string GLstatus = CheckStatus("MiniStatment", GL);
+                    if (GLstatus == "Enabled")
+                    {
+                        HttpWebRequest request = CreateWebRequestMiniStatment();
+                        XmlDocument soapEnvelopeXml = new XmlDocument();
+                        soapEnvelopeXml.LoadXml(@"<soapenv:Envelope xmlns:soapenv=""http://schemas.xmlsoap.org/soap/envelope/"" xmlns:stat=""statementOfAccountWs"">
    <soapenv:Header/>
    <soapenv:Body>
       <stat:returnMiniStatement>
@@ -178,114 +181,90 @@ namespace IMAL_FIN_Inquery
       </stat:returnMiniStatement>
    </soapenv:Body>
 </soapenv:Envelope>"
-                        );
+                            );
 
-                    string soapResult = "";
+                        string soapResult = "";
 
-                    using (Stream stream = request.GetRequestStream())
-                    {
-                        soapEnvelopeXml.Save(stream);
-                    }
-
-
-                    using (WebResponse response = request.GetResponse())
-                    {
-                        using (StreamReader rd = new StreamReader(response.GetResponseStream()))
+                        using (Stream stream = request.GetRequestStream())
                         {
-                            soapResult = rd.ReadToEnd();
-                            // Console.WriteLine(soapResult);
-                            var str = XElement.Parse(soapResult);
-                            XmlDocument xmlDoc = new XmlDocument();
-                            xmlDoc.LoadXml(soapResult);
-                            XmlNodeList elemlistCode = xmlDoc.GetElementsByTagName("statusCode");
-                            SstatusCode = elemlistCode[0].InnerXml;
-                            XmlNodeList elemliststatusDesc = xmlDoc.GetElementsByTagName("statusDesc");
+                            soapEnvelopeXml.Save(stream);
+                        }
 
-                            SstatusDesc = elemliststatusDesc[0].InnerXml;
 
-                            if (SstatusCode == "0")
+                        using (WebResponse response = request.GetResponse())
+                        {
+                            using (StreamReader rd = new StreamReader(response.GetResponseStream()))
                             {
-                             
-                                XmlNodeList elemlistCodeavailableBalance = xmlDoc.GetElementsByTagName("availableBalance");
-                                availableBalance = elemlistCodeavailableBalance[0].InnerXml;
-                         
-                                XmlNodeList elemlistCodeminiStatementList = xmlDoc.GetElementsByTagName("miniStatement");
-                                SminiStatementList = elemlistCodeminiStatementList[0].InnerXml;
-                                foreach (XmlNode node in elemlistCodeminiStatementList)
+                                soapResult = rd.ReadToEnd();
+                                // Console.WriteLine(soapResult);
+                                var str = XElement.Parse(soapResult);
+                                XmlDocument xmlDoc = new XmlDocument();
+                                xmlDoc.LoadXml(soapResult);
+                                XmlNodeList elemlistCode = xmlDoc.GetElementsByTagName("statusCode");
+                                SstatusCode = elemlistCode[0].InnerXml;
+                                XmlNodeList elemliststatusDesc = xmlDoc.GetElementsByTagName("statusDesc");
+
+                                SstatusDesc = elemliststatusDesc[0].InnerXml;
+
+                                if (SstatusCode == "0")
                                 {
-                                    Samount = node["amount"].InnerText;
 
-                                    if (node["briefDescriptionEnglish"] != null)
-                                    {
-                                        SbriefDescriptionEnglish = node["briefDescriptionEnglish"].InnerText;
-                                    }
-                                    if (node["briefDescriptionArab"] != null)
-                                    {
-                                        SbriefDescriptionArab = node["briefDescriptionArab"].InnerText;
-                                    }
-                                    if (node["longDescriptionArab"] != null)
-                                    {
-                                        SlongDescriptionArab = node["longDescriptionArab"].InnerText;
-                                    }
-                                    if (node["longDescriptionEnglish"] != null)
-                                    {
-                                        SlongDescriptionEnglish = node["longDescriptionEnglish"].InnerText;
-                                    }
-                                    Sdescription = node["description"].InnerText;
-                                    SoperationNumber = node["operationNumber"].InnerText;
-                                    SpostDate = node["postDate"].InnerText;
-                                    StransactionBranch = node["transactionBranch"].InnerText;
-                                    StransactionDate = node["transactionDate"].InnerText;
-                                    StransactionNumber = node["transactionNumber"].InnerText;
-                                    StransactionType = node["transactionType"].InnerText;
-                                    if (StransactionType == "C")
-                                    {
-                                        StransactionType = "Credit";
+                                    XmlNodeList elemlistCodeavailableBalance = xmlDoc.GetElementsByTagName("availableBalance");
+                                    availableBalance = elemlistCodeavailableBalance[0].InnerXml;
 
-                                    }
-                                    else
+                                    XmlNodeList elemlistCodeminiStatementList = xmlDoc.GetElementsByTagName("miniStatement");
+                                    SminiStatementList = elemlistCodeminiStatementList[0].InnerXml;
+                                    foreach (XmlNode node in elemlistCodeminiStatementList)
                                     {
-                                        if (StransactionType == "D")
+                                        Samount = node["amount"].InnerText;
+
+                                        if (node["briefDescriptionEnglish"] != null)
                                         {
-                                            StransactionType = "Debit";
+                                            SbriefDescriptionEnglish = node["briefDescriptionEnglish"].InnerText;
                                         }
-                                    }
-                                    SvalueDate = node["valueDate"].InnerText;
-
-                             
-                                    if (lang == "EN")
-                                    {
-                                        CheckFields(channelname, "MiniStatment");
-                                        datum.Add(new Datum
+                                        if (node["briefDescriptionArab"] != null)
                                         {
-                                            amount = Samount,
-                                            briefDescription = SbriefDescriptionEnglish,
-                                            description = Sdescription,
-                                            longDescription = SlongDescriptionEnglish,
-                                            operationNumber = SoperationNumber,
-                                            postDate = SpostDate,
-                                            transactionBranch = StransactionBranch,
-                                            transactionDate = StransactionDate,
-                                            transactionNumber = StransactionNumber,
-                                            transactionType = StransactionType,
-                                            valueDate = SvalueDate,
-                                            statusCode = SstatusCode,
-                                            statusDesc = SstatusDesc
+                                            SbriefDescriptionArab = node["briefDescriptionArab"].InnerText;
+                                        }
+                                        if (node["longDescriptionArab"] != null)
+                                        {
+                                            SlongDescriptionArab = node["longDescriptionArab"].InnerText;
+                                        }
+                                        if (node["longDescriptionEnglish"] != null)
+                                        {
+                                            SlongDescriptionEnglish = node["longDescriptionEnglish"].InnerText;
+                                        }
+                                        Sdescription = node["description"].InnerText;
+                                        SoperationNumber = node["operationNumber"].InnerText;
+                                        SpostDate = node["postDate"].InnerText;
+                                        StransactionBranch = node["transactionBranch"].InnerText;
+                                        StransactionDate = node["transactionDate"].InnerText;
+                                        StransactionNumber = node["transactionNumber"].InnerText;
+                                        StransactionType = node["transactionType"].InnerText;
+                                        if (StransactionType == "C")
+                                        {
+                                            StransactionType = "Credit";
+
+                                        }
+                                        else
+                                        {
+                                            if (StransactionType == "D")
+                                            {
+                                                StransactionType = "Debit";
+                                            }
+                                        }
+                                        SvalueDate = node["valueDate"].InnerText;
 
 
-                                        });
-                                    }
-                                    else
-                                    {
-                                        if (lang == "AR")
+                                        if (lang == "EN")
                                         {
                                             CheckFields(channelname, "MiniStatment");
                                             datum.Add(new Datum
                                             {
                                                 amount = Samount,
-                                                briefDescription = SbriefDescriptionArab,
+                                                briefDescription = SbriefDescriptionEnglish,
                                                 description = Sdescription,
-                                                longDescription = SlongDescriptionArab,
+                                                longDescription = SlongDescriptionEnglish,
                                                 operationNumber = SoperationNumber,
                                                 postDate = SpostDate,
                                                 transactionBranch = StransactionBranch,
@@ -295,75 +274,105 @@ namespace IMAL_FIN_Inquery
                                                 valueDate = SvalueDate,
                                                 statusCode = SstatusCode,
                                                 statusDesc = SstatusDesc
+
+
                                             });
                                         }
+                                        else
+                                        {
+                                            if (lang == "AR")
+                                            {
+                                                CheckFields(channelname, "MiniStatment");
+                                                datum.Add(new Datum
+                                                {
+                                                    amount = Samount,
+                                                    briefDescription = SbriefDescriptionArab,
+                                                    description = Sdescription,
+                                                    longDescription = SlongDescriptionArab,
+                                                    operationNumber = SoperationNumber,
+                                                    postDate = SpostDate,
+                                                    transactionBranch = StransactionBranch,
+                                                    transactionDate = StransactionDate,
+                                                    transactionNumber = StransactionNumber,
+                                                    transactionType = StransactionType,
+                                                    valueDate = SvalueDate,
+                                                    statusCode = SstatusCode,
+                                                    statusDesc = SstatusDesc
+                                                });
+                                            }
+                                        }
+
+
                                     }
+
+                                }
+                                else
+                                {
+                                    XmlNodeList elemliststatusCode = xmlDoc.GetElementsByTagName("statusCode");
+                                    SstatusCode = elemliststatusCode[0].InnerXml;
+                                    XmlNodeList elemlistDesc = xmlDoc.GetElementsByTagName("statusDesc");
+                                    SstatusDesc = elemlistDesc[0].InnerXml;
+
+                                    datum.Add(new Datum
+                                    {
+                                        amount = Samount,
+
+                                        description = Sdescription,
+
+                                        operationNumber = SoperationNumber,
+                                        postDate = SpostDate,
+                                        transactionBranch = StransactionBranch,
+                                        transactionDate = StransactionDate,
+                                        transactionNumber = StransactionNumber,
+                                        transactionType = StransactionType,
+                                        valueDate = SvalueDate,
+                                        statusCode = SstatusCode,
+                                        statusDesc = SstatusDesc
+                                    });
 
 
                                 }
-
-                            }
-                            else
-                            {
-                                XmlNodeList elemliststatusCode = xmlDoc.GetElementsByTagName("statusCode");
-                                SstatusCode = elemliststatusCode[0].InnerXml;
-                                XmlNodeList elemlistDesc = xmlDoc.GetElementsByTagName("statusDesc");
-                                SstatusDesc = elemlistDesc[0].InnerXml;
-
-                                datum.Add(new Datum
-                                {
-                                    amount = Samount,
-
-                                    description = Sdescription,
-
-                                    operationNumber = SoperationNumber,
-                                    postDate = SpostDate,
-                                    transactionBranch = StransactionBranch,
-                                    transactionDate = StransactionDate,
-                                    transactionNumber = StransactionNumber,
-                                    transactionType = StransactionType,
-                                    valueDate = SvalueDate,
-                                    statusCode = SstatusCode,
-                                    statusDesc = SstatusDesc
-                                });
-
-
                             }
                         }
                     }
-                }else
+                    else
+                    {
+                        SstatusCode = "-986";
+                        SstatusDesc = "GL Not Allowed";
+                        datum.Add(new Datum
+                        {
+
+                            statusCode = SstatusCode,
+                            statusDesc = SstatusDesc
+                        });
+                    }
+                }
+                else
                 {
-                    SstatusCode = "-986";
-                    SstatusDesc = "GL Not Allowed";
+                    SstatusCode = "-985";
+                    SstatusDesc = "you are not authorize";
                     datum.Add(new Datum
                     {
-                      
+
                         statusCode = SstatusCode,
                         statusDesc = SstatusDesc
                     });
                 }
-            }
-            else
-            {
-                SstatusCode = "-985";
-                SstatusDesc = "you are not authorize";
-                datum.Add(new Datum
+                string statuslog = "";
+                if (SstatusCode == "0")
                 {
-                  
-                    statusCode = SstatusCode,
-                    statusDesc = SstatusDesc
-                });
+                    statuslog = "Success";
+                }
+                else
+                {
+                    statuslog = "Failed";
+                }
+                DalCode.UpdateLog(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"), JsonConvert.SerializeObject((datum)), statuslog, channelname, RequestID);
             }
-            string statuslog = "";
-            if(SstatusCode =="0")
+            catch (Exception ex)
             {
-                statuslog = "Success";
+                Console.WriteLine(ex.StackTrace);
             }
-            else
-            {
-                statuslog = "Failed";
-            }
-            DalCode.UpdateLog(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"), JsonConvert.SerializeObject((datum)), statuslog,channelname,RequestID);
             return JsonConvert.SerializeObject((datum));
         }
         public class log
@@ -831,6 +840,7 @@ namespace IMAL_FIN_Inquery
             string RequestID = "MW-AVBAL-" + AdditionalRef + "-" + DateTime.Now.ToString("ddMMyyyyHHmmssff");
             List<ReqAvilbal> logrequest = new List<ReqAvilbal>();
             List<RespAvilb> respnseavail = new List<RespAvilb>();
+            try { 
             string status = CheckChannel(channelname, username, remoteIP, "AvailBalance");
             logrequest.Add(new ReqAvilbal
             {
@@ -1057,6 +1067,11 @@ namespace IMAL_FIN_Inquery
                 statuslog = "Failed";
             }
             DalCode.UpdateLog(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"), JsonConvert.SerializeObject((respnseavail)), statuslog, channelname, RequestID);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.StackTrace);
+            }
             return Convert.ToString(availableBalance);
         }
 
@@ -1072,6 +1087,7 @@ namespace IMAL_FIN_Inquery
             List<RespACCT> datum = new List<RespACCT>();
             string RequestID = "MW-ACCDT-" + AdditionalRef + "-" + DateTime.Now.ToString("ddMMyyyyHHmmssff");
             List<ReqACCDT> logrequest = new List<ReqACCDT>();
+            try { 
             string status = CheckChannel(channelname, username, remoteIP, "ACCDetails");
             logrequest.Add(new ReqACCDT
             {
@@ -1279,6 +1295,11 @@ namespace IMAL_FIN_Inquery
                 statuslog = "Failed";
             }
             DalCode.UpdateLog(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"), JsonConvert.SerializeObject((datum)), statuslog, channelname, RequestID);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.StackTrace);
+            }
             return JsonConvert.SerializeObject((datum));
 
         }
